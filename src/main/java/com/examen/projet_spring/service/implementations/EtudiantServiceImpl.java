@@ -1,4 +1,8 @@
 package com.examen.projet_spring.service.implementations;
 
-public class EtudiantServiceImpl {
+import org.springframework.stereotype.Service;
+
+@Service
+public class EtudiantServiceImpl implements EtudiantService {
+    // Implémente ici les méthodes de EtudiantService
 }
