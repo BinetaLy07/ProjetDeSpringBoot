@@ -1,0 +1,24 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    # URL de connexion à XAMPP MySQL avec création automatique de la base spring_examen si elle n'existe pas
+    url: jdbc:mysql://localhost:3306/spring_examen?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: # Par défaut sous XAMPP, le mot de passe est vide pour l'utilisateur root
+  jpa:
+    hibernate:
+      ddl-auto: update # Met à jour automatiquement la base de données selon tes entités Java
+    show-sql: true     # Affiche les requêtes SQL générées dans la console pour faciliter le débogage
+    properties:
+      hibernate:
+        # CORRECTION : Utilisation du dialecte MySQL unifié et moderne pour Hibernate 6+ / Spring Boot 3[cite: 1]
+        dialect: org.hibernate.dialect.MySQLDialect
+
+app:
+  jwt:
+    # Clé secrète robuste générée via PowerShell pour sécuriser tes signatures de jetons[cite: 1]
+    secret: kdPC46j3qMTsTvl9kjybxHVJPaSugVohYbqe/zVZIBDMCie5ITfaCCpS/gpx2iy1gJhKmmHQlFreQnsy469HvQ==
+    access-token-expiration: 900000 # Durée de vie de l'access token : 15 minutes[cite: 1]
+    refresh-token-expiration: 604800000 # Durée de vie du refresh token : 7 jours[cite: 1]
