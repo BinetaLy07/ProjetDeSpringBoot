@@ -28,7 +28,8 @@ public class JwtService {
     public String generateAccessToken(AppUser user) {
         return Jwts.builder()
                 .subject(user.getEmail())
-                .claim("role", "ROLE_" + user.getRole().name()) // Spring Security préfixe les rôles par ROLE_
+                // On écrit explicitement le rôle avec le préfixe "ROLE_" dans le token pour correspondre aux autorités[cite: 2]
+                .claim("role", "ROLE_" + user.getRole().name())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(getSigningKey())
