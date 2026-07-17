@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         var appUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable avec l'email : " + email));
 
-        // On convertit notre AppUser en UserDetails compris par Spring Security
+        // IMPORTANT : On utilise le rôle brut sous forme d'autorité "ROLE_ADMIN", "ROLE_ENSEIGNANT" ou "ROLE_ETUDIANT"[cite: 2]
         return new User(
                 appUser.getEmail(),
                 appUser.getPassword(),
