@@ -1,7 +1,10 @@
-package com.examen.projet_spring.domain;
+package com.examen.projet_spring.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "etudiants")
@@ -16,12 +19,30 @@ public class Etudiant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String matricule;
 
-    private String photoUrl; // Pour la S3 (Upload de fichiers)
+    @Column(nullable = false)
+    private String nom;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private AppUser user;
+    @Column(nullable = false)
+    private String prenom;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    private String filiere;
+
+    @Column(name = "date_naissance")
+    @JsonProperty("dateNaissance")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate dateNaissance;
+
+    @Column(name = "lieu_naissance")
+    @JsonProperty("lieuNaissance")
+    private String lieuNaissance;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean deleted = false;
 }

@@ -1,15 +1,43 @@
 package com.examen.projet_spring.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import java.time.LocalDate;
 
-@Data // <-- Cette annotation génère automatiquement getEmail(), getPassword(), etc.
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class EtudiantDTO {
+
+        @NotBlank(message = "Le matricule est obligatoire")
         private String matricule;
-        private String fullname;
-        private String email;     // <-- Vérifie que ce champ est bien écrit en minuscules
-        private String password;
+
+        @NotBlank(message = "Le nom est obligatoire")
+        private String nom;
+
+        @NotBlank(message = "Le prénom est obligatoire")
+        private String prenom;
+
+        @NotBlank(message = "L'email est obligatoire")
+        @Email(message = "Format de l'email invalide")
+        private String email;
+
+        private String filiere;
+
+        @NotNull(message = "La date de naissance est obligatoire")
+        @JsonProperty("dateNaissance")
+        @JsonFormat(pattern = "yyyy-MM-dd") // Assure le format Année-Mois-Jour
+        private LocalDate dateNaissance;
+
+        @NotBlank(message = "Le lieu de naissance est obligatoire")
+        @JsonProperty("lieuNaissance")
+        private String lieuNaissance;
 }
