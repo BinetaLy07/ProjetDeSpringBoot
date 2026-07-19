@@ -26,15 +26,19 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint; // Ajouté
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // Désactivation CSRF car l'API est Stateless
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Endpoints publics pour l'authentification
+                        .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint) // Branché ici
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -44,7 +48,6 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        // CORRECTION ICI : On passe directement le userDetailsService au constructeur requis
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
