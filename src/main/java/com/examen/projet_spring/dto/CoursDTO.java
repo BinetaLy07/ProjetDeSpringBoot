@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record CoursDTO(
+
+        Long id,
+
         @NotBlank(message = "Le titre du cours est obligatoire")
         String titre,
 
