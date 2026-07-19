@@ -14,21 +14,26 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+
 @Service
 @RequiredArgsConstructor
 public class EtudiantServiceImpl implements EtudiantService {
+
 
     private final EtudiantRepository etudiantRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
 
+
     @Override
     public EtudiantResponseDTO createEtudiant(EtudiantDTO dto) {
+
 
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("Cet email est déjà utilisé !");
         }
+
 
         AppUser user = AppUser.builder()
                 .fullname(dto.getFullname())
@@ -36,6 +41,7 @@ public class EtudiantServiceImpl implements EtudiantService {
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .role(Role.ETUDIANT)
                 .build();
+
 
         userRepository.save(user);
 
@@ -45,7 +51,9 @@ public class EtudiantServiceImpl implements EtudiantService {
                 .user(user)
                 .build();
 
+
         Etudiant saved = etudiantRepository.save(etudiant);
+
 
         return new EtudiantResponseDTO(
                 saved.getId(),
@@ -57,6 +65,8 @@ public class EtudiantServiceImpl implements EtudiantService {
     }
 
 
+
+
     @Override
     public Page<EtudiantResponseDTO> getAllEtudiants(
             Long id,
@@ -64,6 +74,7 @@ public class EtudiantServiceImpl implements EtudiantService {
             String fullname,
             Pageable pageable
     ) {
+
         return etudiantRepository.findAll(pageable)
                 .map(e -> new EtudiantResponseDTO(
                         e.getId(),
@@ -75,11 +86,17 @@ public class EtudiantServiceImpl implements EtudiantService {
     }
 
 
+
+
+
     @Override
     public EtudiantResponseDTO getEtudiantById(Long id) {
 
+
         Etudiant e = etudiantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Etudiant introuvable"));
+
+
 
         return new EtudiantResponseDTO(
                 e.getId(),
@@ -91,17 +108,64 @@ public class EtudiantServiceImpl implements EtudiantService {
     }
 
 
+
+
+
     @Override
     public EtudiantResponseDTO updateEtudiant(Long id, EtudiantDTO dto) {
-        return null;
+
+
+        Etudiant etudiant = etudiantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Etudiant introuvable"));
+
+
+
+        AppUser user = etudiant.getUser();
+
+
+        user.setFullname(dto.getFullname());
+        user.setEmail(dto.getEmail());
+
+
+        if(dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+
+            user.setPassword(
+                    passwordEncoder.encode(dto.getPassword())
+            );
+        }
+
+
+        userRepository.save(user);
+
+
+
+        etudiant.setMatricule(dto.getMatricule());
+
+
+        Etudiant updated = etudiantRepository.save(etudiant);
+
+
+
+        return new EtudiantResponseDTO(
+                updated.getId(),
+                updated.getMatricule(),
+                updated.getUser().getFullname(),
+                updated.getUser().getEmail(),
+                updated.getPhotoUrl()
+        );
     }
+
+
+
 
 
     @Override
     public void deleteEtudiant(Long id) {
 
+
         Etudiant e = etudiantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Etudiant introuvable"));
+
 
         etudiantRepository.delete(e);
     }
