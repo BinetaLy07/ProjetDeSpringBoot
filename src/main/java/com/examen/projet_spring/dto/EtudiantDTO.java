@@ -17,6 +17,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class EtudiantDTO {
 
+        private Long id;
+
         @NotBlank(message = "Le matricule est obligatoire")
         private String matricule;
 

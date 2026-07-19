@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +24,6 @@ public class EtudiantServiceImpl implements EtudiantService {
     @Override
     @Transactional
     public EtudiantResponseDTO createEtudiant(EtudiantDTO dto) {
-        // Vérification des doublons avant création
         if (etudiantRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("DELETED_OR_NOT_FOUND:Un étudiant avec l'email " + dto.getEmail() + " existe déjà.");
         }
@@ -42,6 +43,12 @@ public class EtudiantServiceImpl implements EtudiantService {
             etudiant.setMatricule(dto.getMatricule());
         }
         return mapperEnResponseDTO(etudiantRepository.save(etudiant));
+    }
+
+    @Override
+    @Transactional
+    public List<EtudiantResponseDTO> createEtudiants(List<EtudiantDTO> dtos) {
+        return dtos.stream().map(this::createEtudiant).collect(Collectors.toList());
     }
 
     @Override
@@ -75,7 +82,10 @@ public class EtudiantServiceImpl implements EtudiantService {
 
     @Override
     public Page<EtudiantResponseDTO> getAllEtudiants(Long id, String matricule, String fullname, Pageable pageable) {
-        return etudiantRepository.findByDeletedFalse(pageable).map(this::mapperEnResponseDTO);
+        if (matricule == null && fullname == null) {
+            return etudiantRepository.findByDeletedFalse(pageable).map(this::mapperEnResponseDTO);
+        }
+        return etudiantRepository.searchEtudiants(matricule, fullname, pageable).map(this::mapperEnResponseDTO);
     }
 
     @Override
@@ -93,6 +103,14 @@ public class EtudiantServiceImpl implements EtudiantService {
         if (dto.getLieuNaissance() != null) etudiant.setLieuNaissance(dto.getLieuNaissance());
 
         return mapperEnResponseDTO(etudiantRepository.save(etudiant));
+    }
+
+    @Override
+    @Transactional
+    public List<EtudiantResponseDTO> updateEtudiants(List<EtudiantDTO> dtos) {
+        return dtos.stream()
+                .map(dto -> updateEtudiant(dto.getId(), dto))
+                .collect(Collectors.toList());
     }
 
     @Override

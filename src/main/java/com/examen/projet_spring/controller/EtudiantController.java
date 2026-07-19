@@ -14,8 +14,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -36,6 +38,55 @@ public class EtudiantController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @PostMapping("/batch")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> createPlusieursEtudiants(@Valid @RequestBody List<EtudiantDTO> dtos) {
+        List<EtudiantResponseDTO> crees = etudiantService.createEtudiants(dtos);
+        Map<String, Object> response = new HashMap<>();
+        response.put("date_operation", LocalDateTime.now().toString());
+        response.put("message", crees.size() + " étudiants ont été créés avec succès !");
+        response.put("etudiants", crees);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/batch")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> updatePlusieursEtudiants(@Valid @RequestBody List<EtudiantDTO> dtos) {
+        List<Map<String, Object>> detailsModifications = new ArrayList<>();
+
+        for (EtudiantDTO dto : dtos) {
+            // 1. Récupérer l'état actuel pour comparer
+            EtudiantResponseDTO actuel = etudiantService.getEtudiantById(dto.getId());
+
+            // 2. Faire la mise à jour
+            etudiantService.updateEtudiant(dto.getId(), dto);
+
+            // 3. Détecter les modifications
+            Map<String, Object> mods = detecterModifications(actuel, dto);
+
+            // 4. On n'ajoute à la liste QUE si des modifications ont été détectées
+            if (!mods.isEmpty()) {
+                Map<String, Object> detail = new LinkedHashMap<>();
+                detail.put("id", dto.getId());
+                detail.put("message", genererMessageModif(actuel, mods));
+                detail.put("champsModifies", mods);
+                detailsModifications.add(detail);
+            }
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("date_operation", LocalDateTime.now().toString());
+
+        if (detailsModifications.isEmpty()) {
+            response.put("message", "Aucune modification n'a été effectuée sur les étudiants fournis.");
+        } else {
+            response.put("message", detailsModifications.size() + " étudiant(s) ont été mis à jour.");
+            response.put("resultats", detailsModifications);
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ENSEIGNANT')")
     public ResponseEntity<Page<EtudiantResponseDTO>> listerTousLesEtudiants(
@@ -43,7 +94,6 @@ public class EtudiantController {
             @RequestParam(defaultValue = "5") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        // APPEL CORRIGÉ : 4 paramètres
         Page<EtudiantResponseDTO> resultat = etudiantService.getAllEtudiants(null, null, null, pageable);
         return ResponseEntity.ok(resultat);
     }
@@ -68,15 +118,22 @@ public class EtudiantController {
 
     @GetMapping("/recherche")
     @PreAuthorize("hasAnyRole('ADMIN', 'ENSEIGNANT')")
-    public ResponseEntity<Page<EtudiantResponseDTO>> rechercheGlobale(
+    public ResponseEntity<?> rechercheGlobale(
             @RequestParam(required = false) String matricule,
             @RequestParam(required = false) String fullname,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        // APPEL CORRIGÉ : 4 paramètres conformes à l'interface (id, matricule, fullname, pageable)
         Page<EtudiantResponseDTO> resultat = etudiantService.getAllEtudiants(null, matricule, fullname, pageable);
+
+        if (resultat.isEmpty()) {
+            Map<String, String> erreur = new HashMap<>();
+            erreur.put("message", "Aucun étudiant trouvé pour les critères : "
+                    + (matricule != null ? "Matricule=" + matricule + " " : "")
+                    + (fullname != null ? "Nom=" + fullname : ""));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erreur);
+        }
         return ResponseEntity.ok(resultat);
     }
 
@@ -91,7 +148,6 @@ public class EtudiantController {
 
         Map<String, Object> response = new LinkedHashMap<>();
         Map<String, Object> modifications = detecterModifications(actuel, dto);
-
         response.put("date_operation", LocalDateTime.now().toString());
 
         if (!modifications.isEmpty()) {
@@ -101,7 +157,6 @@ public class EtudiantController {
         } else {
             response.put("message", "Aucune modification détectée.");
         }
-
         return ResponseEntity.ok(response);
     }
 
@@ -110,7 +165,6 @@ public class EtudiantController {
     public ResponseEntity<Map<String, Object>> deleteEtudiant(@PathVariable Long id) {
         EtudiantResponseDTO etudiant = etudiantService.getEtudiantById(id);
         etudiantService.deleteEtudiant(id);
-
         Map<String, Object> response = new HashMap<>();
         response.put("date_operation", LocalDateTime.now().toString());
         response.put("message", "L'étudiant " + etudiant.getPrenom() + " " + etudiant.getNom() + " a été supprimé avec succès !");
