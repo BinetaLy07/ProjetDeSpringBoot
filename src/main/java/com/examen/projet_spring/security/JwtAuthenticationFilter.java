@@ -1,5 +1,8 @@
 package com.examen.projet_spring.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +32,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // Diagnostic 1 : Entrée dans le filtre
         System.out.println("=== DIAGO : Nouvelle requête sur " + request.getRequestURI() + " ===");
 
         final String authHeader = request.getHeader("Authorization");
@@ -38,6 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             System.out.println("=== DIAGO : Pas de header Authorization ou pas de Bearer ! ===");
+            request.setAttribute("jwt_error", "Jeton d'authentification absent (Format 'Bearer <token>' requis).");
             filterChain.doFilter(request, response);
             return;
         }
@@ -65,10 +68,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     System.out.println("=== DIAGO : Authentification réussie et injectée dans le contexte ! ===");
                 } else {
                     System.out.println("=== DIAGO : Le jeton JWT est invalide ou expiré ! ===");
+                    request.setAttribute("jwt_error", "Le jeton d'authentification est invalide ou expiré.");
                 }
             }
+        } catch (ExpiredJwtException e) {
+            System.out.println("=== DIAGO ERREUR : Le jeton a expiré ! ===");
+            request.setAttribute("jwt_error", "Le jeton d'authentification a expiré.");
+        } catch (MalformedJwtException e) {
+            System.out.println("=== DIAGO ERREUR : Le jeton est mal formé ! ===");
+            request.setAttribute("jwt_error", "Le jeton d'authentification est mal formé ou corrompu.");
+        } catch (SignatureException e) {
+            System.out.println("=== DIAGO ERREUR : Signature du jeton invalide ! ===");
+            request.setAttribute("jwt_error", "La signature du jeton d'authentification est invalide.");
         } catch (Exception e) {
-            System.out.println("=== DIAGO ERREUR : Échec de la lecture ou validation du Jeton ! Raison : " + e.getMessage() + " ===");
+            System.out.println("=== DIAGO ERREUR : Échec de validation ! Raison : " + e.getMessage() + " ===");
+            request.setAttribute("jwt_error", "Erreur lors de la validation du jeton : " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);

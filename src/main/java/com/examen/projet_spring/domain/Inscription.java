@@ -4,6 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
 
+// Importation de la classe Etudiant depuis le package model
+import com.examen.projet_spring.domain.Etudiant;
+
+// Si ta classe Cours est aussi dans le package model, décommente la ligne suivante :
+// import com.examen.projet_spring.domain.Cours;
+
 @Entity
 @Table(name = "inscriptions")
 @Getter
