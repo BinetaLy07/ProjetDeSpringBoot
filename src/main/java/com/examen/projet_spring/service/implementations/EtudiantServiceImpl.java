@@ -91,15 +91,21 @@ public class EtudiantServiceImpl implements EtudiantService {
     }
 
     /**
-     * Méthode de mapping adaptée à la nature immuable du record EtudiantResponseDTO
+     * Méthode de mapping Etudiant -> EtudiantResponseDTO
      */
     private EtudiantResponseDTO mapToResponseDTO(Etudiant etudiant) {
+
+        AppUser user = etudiant.getUser();
+
         return new EtudiantResponseDTO(
                 etudiant.getId(),
                 etudiant.getMatricule(),
-                etudiant.getUser().getFullname(),
-                etudiant.getUser().getEmail(),
-                etudiant.getPhotoUrl()
+                user != null ? user.getFullname() : null,
+                null,
+                user != null ? user.getEmail() : null,
+                etudiant.getFiliere(),
+                etudiant.getDateNaissance(),
+                etudiant.getLieuNaissance()
         );
     }
 }
