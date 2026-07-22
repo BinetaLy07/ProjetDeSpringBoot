@@ -1,9 +1,9 @@
-package com.examen.projet_spring.model;
+package com.examen.projet_spring.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDate;
 
 @Entity
@@ -22,27 +22,22 @@ public class Etudiant {
     @Column(unique = true, nullable = false)
     private String matricule;
 
-    @Column(nullable = false)
-    private String nom;
-
-    @Column(nullable = false)
-    private String prenom;
-
-    @Column(unique = true, nullable = false)
-    private String email;
-
     private String filiere;
 
     @Column(name = "date_naissance")
-    @JsonProperty("dateNaissance")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateNaissance;
 
     @Column(name = "lieu_naissance")
-    @JsonProperty("lieuNaissance")
     private String lieuNaissance;
 
+    private String photoUrl;
+
     @Builder.Default
-    @Column(nullable = false)
     private boolean deleted = false;
+
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private AppUser user;
 }

@@ -42,4 +42,9 @@ public class EtudiantDTO {
         @NotBlank(message = "Le lieu de naissance est obligatoire")
         @JsonProperty("lieuNaissance")
         private String lieuNaissance;
+        @NotBlank(message = "Le nom complet est obligatoire")
+        private String fullname;
+
+        @NotBlank(message = "Le mot de passe est obligatoire")
+        private String password;
 }

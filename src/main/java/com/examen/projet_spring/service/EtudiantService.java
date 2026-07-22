@@ -1,20 +1,17 @@
 package com.examen.projet_spring.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import com.examen.projet_spring.dto.EtudiantDTO;
 import com.examen.projet_spring.dto.EtudiantResponseDTO;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface EtudiantService {
     EtudiantResponseDTO createEtudiant(EtudiantDTO dto);
-    List<EtudiantResponseDTO> createEtudiants(List<EtudiantDTO> dtos);
-    EtudiantResponseDTO getEtudiantById(Long id);
-    EtudiantResponseDTO getEtudiantByMatricule(String matricule);
-    EtudiantResponseDTO getEtudiantByEmail(String email);
+
+    // Modification ici : ajout des paramètres de recherche
     Page<EtudiantResponseDTO> getAllEtudiants(Long id, String matricule, String fullname, Pageable pageable);
+
+    EtudiantResponseDTO getEtudiantById(Long id);
     EtudiantResponseDTO updateEtudiant(Long id, EtudiantDTO dto);
-    List<EtudiantResponseDTO> updateEtudiants(List<EtudiantDTO> dtos);
     void deleteEtudiant(Long id);
-    EtudiantResponseDTO restaurerEtudiant(Long id);
 }
